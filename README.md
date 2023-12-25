@@ -1,4 +1,4 @@
-# Devops-workshop-sourcecode
+# Devops-workshop-src
 
 This is a small application which contains main and test folders.  
 Main contains application code.  
