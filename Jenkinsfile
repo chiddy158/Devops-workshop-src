@@ -17,22 +17,37 @@ pipeline {
                 echo "----------- build completed ----------"
             }
         }
-        stage("test"){
-            steps{
+        
+        stage("test") {
+            steps {
                 echo "----------- unit test started ----------"
                 sh 'mvn surefire-report:report'
-                 echo "----------- unit test Complted ----------"
+                echo "----------- unit test completed ----------"
             }
         }
+        
         stage('SonarQube analysis') {
-    environment {
-      scannerHome = tool 'sonar-scanner'
-    }
-    steps{
-    withSonarQubeEnv('sonarqube-server') { // If you have configured more than one global server connection, you can specify its name
-      sh "${scannerHome}/bin/sonar-scanner"
-    }
-    }
-  }
+            environment {
+                scannerHome = tool 'sonar-scanner'
+            }
+            steps {
+                withSonarQubeEnv('sonarqube-server') {
+                    sh "${scannerHome}/bin/sonar-scanner"
+                }
+            }
+        }
+        
+        stage("Quality Gate") {
+            steps {
+                script {
+                    timeout(time: 1, unit: 'HOURS') {
+                        def qg = waitForQualityGate()
+                        if (qg.status != 'OK') {
+                            error "Pipeline aborted due to quality gate failure: ${qg.status}"
+                        }
+                    }
+                }
+            }
+        }
     }
 }
