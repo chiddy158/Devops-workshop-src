@@ -1,6 +1,6 @@
 def registry = 'https://vitalsignadevops.jfrog.io'
 def imageName = 'vitalsignadevops.jfrog.io/vitalsigna-docker-docker-local/ttrend'
-def version   = '2.1.2'
+def version = '2.1.2'
 
 pipeline {
     agent {
@@ -8,7 +8,7 @@ pipeline {
             label 'maven'
         }
     }
-    
+
     environment {
         PATH = "/opt/apache-maven-3.9.6/bin:$PATH"
     }
@@ -21,7 +21,7 @@ pipeline {
                 echo "----------- build completed ----------"
             }
         }
-        
+
         stage("test") {
             steps {
                 echo "----------- unit test started ----------"
@@ -29,7 +29,7 @@ pipeline {
                 echo "----------- unit test completed ----------"
             }
         }
-        
+
         stage('SonarQube analysis') {
             environment {
                 scannerHome = tool 'sonar-scanner'
@@ -40,7 +40,7 @@ pipeline {
                 }
             }
         }
-        
+
         stage("Quality Gate") {
             steps {
                 script {
@@ -53,12 +53,12 @@ pipeline {
                 }
             }
         }
-        
+
         stage("Jar Publish") {
             steps {
                 script {
                     echo '<--------------- Jar Publish Started --------------->'
-                    def server = Artifactory.newServer url:registry+"/artifactory" ,  credentialsId:"artfiact-cred"
+                    def server = Artifactory.newServer url:registry+"/artifactory", credentialsId:"artfiact-cred"
                     def properties = "buildid=${env.BUILD_ID},commitid=${GIT_COMMIT}"
                     def uploadSpec = """{
                         "files": [
@@ -66,8 +66,8 @@ pipeline {
                                 "pattern": "jarstaging/(*)",
                                 "target": "vitalsigna-repo-libs-release-local/{1}",
                                 "flat": "false",
-                                "props" : "${properties}",
-                                "exclusions": [ "*.sha1", "*.md5"]
+                                "props": "${properties}",
+                                "exclusions": ["*.sha1", "*.md5"]
                             }
                         ]
                     }"""
@@ -75,29 +75,39 @@ pipeline {
                     def buildInfo = server.upload(uploadSpec)
                     buildInfo.env.collect()
                     server.publishBuildInfo(buildInfo)
-                    echo '<--------------- Jar Publish Ended --------------->'  
+                    echo '<--------------- Jar Publish Ended --------------->'
                 }
-            }   
-        }
-
-        stage(" Docker Build ") {
-          steps {
-            script {
-               echo '<--------------- Docker Build Started --------------->'
-               app = docker.build(imageName+":"+version)
-               echo '<--------------- Docker Build Ends --------------->'
             }
-          }
         }
 
-                stage (" Docker Publish "){
+        stage("Docker Build") {
             steps {
                 script {
-                   echo '<--------------- Docker Publish Started --------------->'  
-                    docker.withRegistry(registry, 'artfiact-cred'){
+                    echo '<--------------- Docker Build Started --------------->'
+                    app = docker.build(imageName+":"+version)
+                    echo '<--------------- Docker Build Ends --------------->'
+                }
+            }
+        }
+
+        stage("Docker Publish") {
+            steps {
+                script {
+                    echo '<--------------- Docker Publish Started --------------->'
+                    docker.withRegistry(registry, 'artfiact-cred') {
                         app.push()
-                    }    
-                   echo '<--------------- Docker Publish Ended --------------->'  
+                    }
+                    echo '<--------------- Docker Publish Ended --------------->'
+                }
+            }
+        }
+
+        stage("Deploy") {
+            steps {
+                script {
+                    echo '<--------------- Deployment Started --------------->'
+                    sh './deploy.sh'
+                    echo '<--------------- Deployment Ends --------------->'
                 }
             }
         }
