@@ -34,7 +34,7 @@ public class RepositoryDetailsController {
 	public String getRepos() throws IOException {
 		GitHub github = new GitHubBuilder().withPassword("valaxytech@gmail.com", "XXXXXXXX").build();
 		GHRepositorySearchBuilder builder = github.searchRepositories();
-		return "Your pipeline structure is clean, and the use of stages allows for clear separation of different phases of the build process. Remember to adapt the pipeline to your specific project requirements and verify that all configurations match your environment.";
+		return "Welcome to Vitalsigna.";
 	}
 
 	@GetMapping("/trends")

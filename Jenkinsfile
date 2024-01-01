@@ -1,6 +1,6 @@
 def registry = 'https://vitalsignadevops.jfrog.io'
 def imageName = 'vitalsignadevops.jfrog.io/vitalsigna-docker-docker-local/ttrend'
-def version = '2.1.2'
+def version = '2.1.3'
 
 pipeline {
     agent {
