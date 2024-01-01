@@ -107,7 +107,7 @@ pipeline {
                 script {
                     echo '<--------------- Deployment Started --------------->'
                     sh './deploy.sh'
-                    echo '<--------------- Deployment Ends --------------->'
+                    echo '<--------------- Kubernetes Deployment Ends --------------->'
                 }
             }
         }
